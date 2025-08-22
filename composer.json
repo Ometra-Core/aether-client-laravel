@@ -1,0 +1,30 @@
+{
+    "name": "ometra/aether-client",
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Ometra\\AetherClient\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Erick Ernesto Escobar Zepeda",
+            "email": "erickesc00@hotmail.com"
+        }
+    ],
+    "require": {
+		    "laravel/framework": "^12.0"
+
+	},
+"extra": {
+    "laravel": {
+        "providers": [
+            "Ometra\\AetherClient\\AetherClientServiceProvider"
+        ],
+        "aliases": {
+            "AetherClient": "Ometra\\AetherClient\\Facades\\AetherClient"
+        }
+    }
+}
+}
