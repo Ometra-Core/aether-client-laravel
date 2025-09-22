@@ -9,16 +9,18 @@ class AetherClient
 {
 	protected string $aether_url;
 	protected string $uri_realm;
+	protected string $api_key;
 
 	public function __construct()
 	{
 		$this->aether_url = config('aether-client.base_url');
 		$this->uri_realm  = config('aether-client.realm_id');
+		$this->api_key= config('aether-client.api_key');
 	}
 
 	public function report(string $actionName, array|string|null $data = null): void
 	{
-		$response = Http::post($this->aether_url . '/api/realms/' . $this->uri_realm, [
+		$response = Http::post($this->aether_url . '/realms/' . $this->uri_realm, [
 			'action' => $actionName,
 			'data'   => $data,
 		]);
