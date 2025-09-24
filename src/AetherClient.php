@@ -20,10 +20,13 @@ class AetherClient
 
 	public function report(string $actionName, array|string|null $data = null): array|null
 	{
-		$response = Http::post($this->aether_url . '/realms/' . $this->uri_realm, [
+		$response = Http::withHeaders([
+			'X-Api-Key' => config('aether.api_key'),
+		])->post($this->aether_url . '/realms/' . $this->uri_realm, [
 			'action' => $actionName,
 			'data'   => $data,
 		]);
+
 
 		if ($response->ok()) {
 			Log::channel('aether')->info('Action reported -> ' . $actionName . ' Payload: ' . json_encode($data));
