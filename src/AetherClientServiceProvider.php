@@ -7,6 +7,7 @@ use Illuminate\Support\ServiceProvider;
 use Monolog\Handler\StreamHandler;
 use Monolog\Formatter\LineFormatter;
 use Monolog\Logger;
+use Ometra\AetherClient\Console\Commands\AetherReport;
 
 class AetherClientServiceProvider extends ServiceProvider
 {
@@ -40,5 +41,11 @@ class AetherClientServiceProvider extends ServiceProvider
 
 			return $logger;
 		});
+
+		if ($this->app->runningInConsole()) {
+			$this->commands([
+				AetherReport::class,
+			]);
+		}
 	}
 }
