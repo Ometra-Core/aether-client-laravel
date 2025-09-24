@@ -18,21 +18,22 @@ class AetherClient
 		$this->api_key = config('aether-client.api_key');
 	}
 
-	public function report(string $actionName, array|string|null $data = null): array|null
+	public function report(string $action, array|string|null $data = null): array|null
 	{
 		$response = Http::withHeaders([
-			'X-Api-Key' => config('aether.api_key'),
+			'X-Api-Key' => $this->api_key,
+			'Accept'    => 'application/json',
 		])->post($this->aether_url . '/realms/' . $this->uri_realm, [
-			'action' => $actionName,
+			'action' => $action,
 			'data'   => $data,
 		]);
 
 
 		if ($response->ok()) {
-			Log::channel('aether')->info('Action reported -> ' . $actionName . ' Payload: ' . json_encode($data));
+			Log::channel('aether')->info('Action reported -> ' . $action . ' Payload: ' . json_encode($data));
 			return $response->json();
 		} else {
-			Log::channel('aether')->alert('Failed to report action -> ' . $actionName);
+			Log::channel('aether')->alert('Failed to report action -> ' . $action);
 			return [
 				'status' => 'error',
 				'message' => $response->body(),
