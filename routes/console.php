@@ -2,7 +2,7 @@
 
 namespace Ometra\AetherClient;
 
-use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Support\Facades\Schedule;
 
 Schedule::command('aether:report Heartbeat')
     ->everyFiveMinutes();
