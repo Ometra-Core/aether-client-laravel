@@ -18,6 +18,8 @@ class AetherClientServiceProvider extends ServiceProvider
 			'aether-client'
 		);
 
+		$this->loadRoutesFrom(__DIR__ . '/../routes/console.php');
+		
 		$this->app->singleton(AetherClient::class, function ($app) {
 			return new AetherClient();
 		});
