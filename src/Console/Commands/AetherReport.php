@@ -5,6 +5,7 @@ namespace Ometra\AetherClient\Console\Commands;
 use Exception;
 use Illuminate\Console\Command;
 use Ometra\AetherClient\Facades\AetherClient;
+use Illuminate\Support\Facades\Log;
 
 class AetherReport extends Command
 {
@@ -26,6 +27,7 @@ class AetherReport extends Command
     {
         $action = $this->argument('action');
         $data = $this->option('data');
+        $log_level = strtolower(config('aether-client.log_level'));
 
         $decodedData = null;
 
@@ -38,13 +40,18 @@ class AetherReport extends Command
         }
 
         $response = AetherClient::report($action, $decodedData);
+        $message = $response['message'] ?? 'No message returned';
         if (isset($response['status']) && $response['status'] === 'error') {
-            $this->error("Server responded with error: " . ($response['message'] ?? 'Unknown error'));
+            Log::channel('aether')->error("Server responded with error: " . $message);
+            $this->error("Server responded with error: " . $message);
             return 1;
         }
 
-        $message = $response['message'] ?? 'No message returned';
+        if ($log_level === 'debug') {
+            Log::channel('aether')->info("Report sent with action: {$action}, payload: " . json_encode($decodedData));
+        }
         $this->info("Report sent with action: {$action}, payload: " . json_encode($decodedData));
         $this->info("Server response: " . $message);
+        return 0;
     }
 }
