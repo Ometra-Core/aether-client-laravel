@@ -25,7 +25,6 @@ class AetherClient
 		$response = Http::withToken($this->token)
 			->withHeaders([
 				'Accept'    => 'application/json',
-				'X-Api-Key' => $this->api_key,
 			])->post(
 				$this->aether_url . '/realms/' . $this->uri_realm,
 				[
