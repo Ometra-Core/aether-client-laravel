@@ -8,10 +8,10 @@ use Illuminate\Support\Facades\Http;
 use Ometra\AetherClient\AetherClient;
 use Exception;
 
-class ReadActions extends Command
+class DeleteActions extends Command
 {
-    protected $signature = 'aether:actions';
-    protected $description = 'List the actions that the application has';
+    protected $signature = 'aether:delete-actions {uri_action}';
+    protected $description = 'Delete a specific action by its URI';
 
     public function handle()
     {
@@ -21,19 +21,20 @@ class ReadActions extends Command
             $token = $client->getToken();
             $uriApplication = $client->getUriApplication();
             $logLevel = $client->getLogLevel();
+            $uri_action = $this->argument('uri_action');
 
             if (!$uriApplication) {
                 $this->error("No se pudo obtener la URI de la aplicación desde el token.");
             }
 
-            $url = "{$baseUrl}/applications/{$uriApplication}/actions";
+            $url = "{$baseUrl}/applications/{$uriApplication}/actions/$uri_action/destroy";
 
             $response = Http::withToken($token)->withHeaders([
                 'Accept' => 'application/json',
             ])->get($url);
 
             if (!$response->ok()) {
-                $this->error("Error al obtener las acciones.");
+                $this->error("Error al obtener eliminar la acción.");
                 Log::channel('aether')->error("Request fallida a $url: " . $response->body());
             }
 
@@ -50,25 +51,10 @@ class ReadActions extends Command
             $actions = $responseData['data'] ?? [];
 
             if ($logLevel === 'debug') {
-                Log::channel('aether')->debug("Acciones recuperadas correctamente desde {$url}.");
+                Log::channel('aether')->debug("Acción eliminada correctamente: {$uri_action}.");
             }
 
-            if (empty($actions)) {
-                $this->info("No hay acciones disponibles.");
-                return 0;
-            }
-
-            $this->info("Acciones disponibles:\n");
-
-            foreach ($actions as $action) {
-                $this->line("URI aplicación: {$action['uri_application']}");
-                $this->line("Nombre: {$action['name']}");
-                $this->line("Descripción: {$action['description']}");
-                $this->line("Frecuencia: {$action['frequency']} minutos");
-                $this->line(str_repeat('-', 40));
-            }
-
-            return 0;
+            $this->info("Acción eliminada correctamente: {$uri_action}.");
         } catch (Exception $e) {
             Log::channel('aether')->error("Excepción en aether:actions -> " . $e->getMessage());
             $this->error("Error inesperado: " . $e->getMessage());
