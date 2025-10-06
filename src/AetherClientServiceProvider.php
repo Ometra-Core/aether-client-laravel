@@ -8,7 +8,6 @@ use Monolog\Handler\StreamHandler;
 use Monolog\Formatter\LineFormatter;
 use Monolog\Logger;
 use Ometra\AetherClient\Console\Commands\AetherReport;
-use Ometra\AetherClient\Console\Commands\Actions\Index;
 use Ometra\AetherClient\Console\Commands\Actions\ReadActions;
 
 class AetherClientServiceProvider extends ServiceProvider
