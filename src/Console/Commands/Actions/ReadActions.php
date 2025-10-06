@@ -26,7 +26,7 @@ class ReadActions extends Command
                 $this->error("No se pudo obtener la URI de la aplicación desde el token.");
             }
 
-            $url = "{$baseUrl}/{$uriApplication}/actions";
+            $url = "{$baseUrl}applications/{$uriApplication}/actions";
 
             $response = Http::withToken($token)->withHeaders([
                 'Accept' => 'application/json',
