@@ -22,8 +22,7 @@ class AetherClient
 
 	public function report(string $action, array|string|null $data = null): array|null
 	{
-		$response = Http::withToken($this->token)
-			->withHeaders([
+		$response = Http::withToken($this->token)->withHeaders([
 				'Accept'    => 'application/json',
 			])->post(
 				$this->aether_url . '/realms/' . $this->uri_realm,
