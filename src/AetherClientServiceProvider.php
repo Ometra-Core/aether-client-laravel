@@ -9,6 +9,7 @@ use Monolog\Formatter\LineFormatter;
 use Monolog\Logger;
 use Ometra\AetherClient\Console\Commands\AetherReport;
 use Ometra\AetherClient\Console\Commands\Actions\ReadActions;
+use Ometra\AetherClient\Console\Commands\Actions\CreateAction;
 
 class AetherClientServiceProvider extends ServiceProvider
 {
@@ -49,6 +50,7 @@ class AetherClientServiceProvider extends ServiceProvider
 			$this->commands([
 				AetherReport::class,
 				ReadActions::class,
+				CreateAction::class,
 			]);
 		}
 	}
