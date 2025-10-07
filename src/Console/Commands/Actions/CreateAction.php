@@ -31,7 +31,7 @@ class CreateAction extends Command
             $this->info("-------Crear nueva acción-------");
             $name = $this->ask("Nombre de la acción (único)");
             $description = $this->ask("Descripción de la acción");
-            $frequency = $this->ask("Frecuencia de reporte (opcional)");
+            $frequency = $this->ask("Frecuencia de reporte (en minutos)");
 
             if (!$this->confirm("¿Crear la acción '{$name}' con descripción '{$description}' en el realm '{$realId}'?")) {
                 $this->info("Operación cancelada.");
@@ -42,7 +42,7 @@ class CreateAction extends Command
                 'name' => $name,
                 'description' => $description,
                 'frequency' => $frequency,
-                'realm_id' => [$realId],
+                'realms' => [$realId],
             ];
 
             $url = "{$baseUrl}/applications/{$uriApplication}/actions";
