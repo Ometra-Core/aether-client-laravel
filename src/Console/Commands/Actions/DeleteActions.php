@@ -48,13 +48,11 @@ class DeleteActions extends Command
                 Log::channel('aether')->error("Respuesta con error desde $url: $message");
             }
 
-            $actions = $responseData['data'] ?? [];
-
             if ($logLevel === 'debug') {
                 Log::channel('aether')->debug("Acción eliminada correctamente: {$uri_action}.");
             }
-
             $this->info("Acción eliminada correctamente: {$uri_action}.");
+            
         } catch (Exception $e) {
             Log::channel('aether')->error("Excepción en aether:actions -> " . $e->getMessage());
             $this->error("Error inesperado: " . $e->getMessage());
