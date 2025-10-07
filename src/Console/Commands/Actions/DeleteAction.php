@@ -2,25 +2,23 @@
 
 namespace Ometra\AetherClient\Console\Commands\Actions;
 
-use Illuminate\Console\Command;
+use Ometra\AetherClient\Console\BaseCommands;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Http;
-use Ometra\AetherClient\AetherClient;
 use Exception;
 
-class DeleteActions extends Command
+class DeleteActions extends BaseCommands
 {
-    protected $signature = 'aether:delete-actions {uri_action}';
+    protected $signature = 'aether:delete-action {uri_action}';
     protected $description = 'Delete a specific action by its URI';
 
     public function handle()
     {
         try {
-            $client = new AetherClient();
-            $baseUrl = $client->getBaseUrl();
-            $token = $client->getToken();
-            $uriApplication = $client->getUriApplication();
-            $logLevel = $client->getLogLevel();
+            $baseUrl = $this->base_url;
+            $token = $this->token;
+            $uriApplication = $this->getUriApplication();
+            $logLevel = $this->log_level;
             $uri_action = $this->argument('uri_action');
 
             if (!$uriApplication) {
@@ -36,6 +34,7 @@ class DeleteActions extends Command
             if (!$response->ok()) {
                 $this->error("Error al obtener eliminar la acción.");
                 Log::channel('aether')->error("Request fallida a $url: " . $response->body());
+                return 1;
             }
 
             $responseData = $response->json();
@@ -46,10 +45,12 @@ class DeleteActions extends Command
             if ($status !== 200) {
                 $this->error("Error del servidor: $message");
                 Log::channel('aether')->error("Respuesta con error desde $url: $message");
+                return 1;
             }
 
             if ($logLevel === 'debug') {
                 Log::channel('aether')->debug("Acción eliminada correctamente: {$uri_action}.");
+                return 0;
             }
             $this->info("Acción eliminada correctamente: {$uri_action}.");
             

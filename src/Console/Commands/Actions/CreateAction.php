@@ -2,13 +2,12 @@
 
 namespace Ometra\AetherClient\Console\Commands\Actions;
 
-use Illuminate\Console\Command;
+use Ometra\AetherClient\Console\BaseCommands;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use Ometra\AetherClient\AetherClient;
 use Exception;
 
-class CreateAction extends Command
+class CreateAction extends BaseCommands
 {
     protected $signature = 'aether:create-action';
     protected $description = 'Create a new action in the Aether system';
@@ -16,12 +15,11 @@ class CreateAction extends Command
     public function handle()
     {
         try {
-            $client = new AetherClient();
-            $baseUrl = $client->getBaseUrl();
-            $token = $client->getToken();
-            $uriApplication = $client->getUriApplication();
-            $logLevel = $client->getLogLevel();
-            $realId = $client->getRealmId();
+            $baseUrl = $this->base_url;
+            $token = $this->token;
+            $uriApplication = $this->getUriApplication();
+            $logLevel = $this->log_level;
+            $realId = $this->realm_id;
 
             if (!$uriApplication) {
                 $this->error("No se pudo obtener la URI de la aplicación desde el token.");
@@ -63,7 +61,7 @@ class CreateAction extends Command
             $message = $responseData['message'] ?? 'Sin mensaje';
             $uri_action = $responseData['data']['uri_action'] ?? null;
 
-            if ($status !== 201) {
+            if ($status !== 200) {
                 $this->error("Error del servidor: $message");
                 Log::channel('aether')->error("Respuesta con error desde $url: $message");
                 return 1;
@@ -71,6 +69,7 @@ class CreateAction extends Command
 
             if ($logLevel === 'debug') {
                 Log::channel('aether')->debug("Acción creada correctamente: {$name} ({$uri_action}).");
+                return 0;
             }
             $this->info("Acción creada correctamente: {$name} ({$uri_action}).");
         } catch (Exception $e) {
