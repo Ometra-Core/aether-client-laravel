@@ -10,7 +10,8 @@ use Monolog\Logger;
 use Ometra\AetherClient\Console\Commands\AetherReport;
 use Ometra\AetherClient\Console\Commands\Actions\Actions;
 use Ometra\AetherClient\Console\Commands\Actions\CreateAction;
-
+use Ometra\AetherClient\Console\Commands\Actions\UpdateAction;
+use Ometra\AetherClient\Console\Commands\Actions\DeleteActions;
 class AetherClientServiceProvider extends ServiceProvider
 {
 	public function register()
@@ -51,6 +52,8 @@ class AetherClientServiceProvider extends ServiceProvider
 				AetherReport::class,
 				Actions::class,
 				CreateAction::class,
+				UpdateAction::class,
+				DeleteActions::class,
 			]);
 		}
 	}
