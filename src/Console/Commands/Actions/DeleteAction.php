@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Http;
 use Exception;
 
-class DeleteActions extends BaseCommands
+class DeleteAction extends BaseCommands
 {
     protected $signature = 'aether:delete-action {uri_action}';
     protected $description = 'Delete a specific action by its URI';

@@ -11,7 +11,7 @@ use Ometra\AetherClient\Console\Commands\AetherReport;
 use Ometra\AetherClient\Console\Commands\Actions\Actions;
 use Ometra\AetherClient\Console\Commands\Actions\CreateAction;
 use Ometra\AetherClient\Console\Commands\Actions\UpdateAction;
-use Ometra\AetherClient\Console\Commands\Actions\DeleteActions;
+use Ometra\AetherClient\Console\Commands\Actions\DeleteAction;
 class AetherClientServiceProvider extends ServiceProvider
 {
 	public function register()
@@ -53,7 +53,7 @@ class AetherClientServiceProvider extends ServiceProvider
 				Actions::class,
 				CreateAction::class,
 				UpdateAction::class,
-				DeleteActions::class,
+				DeleteAction::class,
 			]);
 		}
 	}
