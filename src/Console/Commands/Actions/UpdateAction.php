@@ -37,13 +37,17 @@ class UpdateAction extends BaseCommands
         }
 
         $choices = collect($actions)->mapWithKeys(function ($action) {
+            if (is_object($action)) {
+                $action = (array) $action;
+            }
             $label = "{$action['name']} - {$action['description']}";
             return [$label => $action['uri_action']];
         })->toArray();
+
         $selectedLabel = $this->choice("Selecciona una acción para editar:", array_keys($choices));
         $selectedUri = $choices[$selectedLabel];
         $selectedAction = collect($actions)->firstWhere('uri_action', $selectedUri);
-        
+
         if (!$selectedAction) {
             $this->error("Acción no encontrada.");
             return 1;
