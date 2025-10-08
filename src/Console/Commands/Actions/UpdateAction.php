@@ -36,13 +36,11 @@ class UpdateAction extends BaseCommands
             return 0;
         }
 
-        $choices = collect($actions)->mapWithKeys(function ($action) {
-            if (is_object($action)) {
-                $action = (array) $action;
-            }
+        $choices = [];
+        foreach ($actions as $action) {
             $label = "{$action['name']} - {$action['description']}";
-            return [$label => $action['uri_action']];
-        })->toArray();
+            $choices[$label] = $action['uri_action'];
+        }
 
         $selectedLabel = $this->choice("Selecciona una acción para editar:", array_keys($choices));
         $selectedUri = $choices[$selectedLabel];
