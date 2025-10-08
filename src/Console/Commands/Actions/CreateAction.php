@@ -71,7 +71,7 @@ class CreateAction extends BaseCommands
                 Log::channel('aether')->debug("Acción creada correctamente: {$name} ({$uri_action}).");
                 return 0;
             }
-            $this->info("Acción creada correctamente: {$name} ({$uri_action}).");
+            $this->info("Acción creada correctamente: {$name}.");
         } catch (Exception $e) {
             Log::channel('aether')->error("Excepción en aether:create-action -> " . $e->getMessage());
             $this->error("Error inesperado: " . $e->getMessage());

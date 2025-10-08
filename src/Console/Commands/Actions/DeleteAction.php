@@ -9,7 +9,7 @@ use Exception;
 
 class DeleteAction extends BaseCommands
 {
-    protected $signature = 'aether:delete-action {uri_action}';
+    protected $signature = 'aether:delete-action';
     protected $description = 'Delete a specific action by its URI';
 
     public function handle()
@@ -19,20 +19,58 @@ class DeleteAction extends BaseCommands
             $token = $this->token;
             $uriApplication = $this->getUriApplication();
             $logLevel = $this->log_level;
-            $uri_action = $this->argument('uri_action');
 
             if (!$uriApplication) {
                 $this->error("No se pudo obtener la URI de la aplicación desde el token.");
             }
 
-            $url = "{$baseUrl}/applications/{$uriApplication}/actions/$uri_action/destroy";
-
+            $url = "{$baseUrl}/applications/{$uriApplication}/actions";
             $response = Http::withToken($token)->withHeaders([
                 'Accept' => 'application/json',
             ])->get($url);
 
             if (!$response->ok()) {
-                $this->error("Error al obtener eliminar la acción.");
+                $this->error("No se pudieron obtener las acciones.");
+                return 1;
+            }
+
+            $actions = $response->json()['data'] ?? [];
+
+            if (empty($actions)) {
+                $this->warn("No hay acciones registradas.");
+                return 0;
+            }
+
+            $choices = [];
+            foreach ($actions as $action) {
+                $label = "{$action['name']} - {$action['description']}";
+                $choices[$label] = $action['uri_action'];
+            }
+
+            $selectedLabel = $this->choice("Selecciona una acción para eliminar:", array_keys($choices));
+            $selectedUri = $choices[$selectedLabel];
+            $selectedAction = collect($actions)->firstWhere('uri_action', $selectedUri);
+            $uriAction = $selectedAction['uri_action'] ?? null;
+
+            if (!$selectedAction) {
+                $this->error("Acción no encontrada.");
+                return 1;
+            }
+
+            $this->info("Has seleccionado: {$selectedAction['name']}");
+            if (!$this->confirm("¿Deseas eliminar está aplicación?", true)) {
+                $this->info("No se realizaron cambios.");
+                return 0;
+            }
+
+            $url = "{$baseUrl}/applications/{$uriApplication}/actions/$uriAction/destroy";
+
+            $response = Http::withToken($token)->withHeaders([
+                'Accept' => 'application/json',
+            ])->delete($url);
+
+            if (!$response->ok()) {
+                $this->error("Error al eliminar la acción.");
                 Log::channel('aether')->error("Request fallida a $url: " . $response->body());
                 return 1;
             }
@@ -49,11 +87,10 @@ class DeleteAction extends BaseCommands
             }
 
             if ($logLevel === 'debug') {
-                Log::channel('aether')->debug("Acción eliminada correctamente: {$uri_action}.");
+                Log::channel('aether')->debug("Acción eliminada correctamente: {$selectedAction['name']} con URI: $uriAction");
                 return 0;
             }
-            $this->info("Acción eliminada correctamente: {$uri_action}.");
-            
+            $this->info("Acción eliminada correctamente: {$selectedAction['name']} con URI: $uriAction");
         } catch (Exception $e) {
             Log::channel('aether')->error("Excepción en aether:actions -> " . $e->getMessage());
             $this->error("Error inesperado: " . $e->getMessage());
