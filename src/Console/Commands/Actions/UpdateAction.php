@@ -36,7 +36,6 @@ class UpdateAction extends BaseCommands
             return 0;
         }
 
-        dd($actions);
         $choices = [];
         foreach ($actions as $action) {
             $label = "{$action['name']} - {$action['description']}";
@@ -60,26 +59,39 @@ class UpdateAction extends BaseCommands
 
         do {
             $this->line("\n¿Qué deseas modificar?");
-            $option = $this->choice("Opciones", [
-                '1' => 'Nombre',
-                '2' => 'Descripción',
-                '3' => 'Frecuencia',
-                '4' => 'Ver valores actuales',
-                '5' => 'Guardar y salir',
-                '6' => 'Cancelar',
-            ], '1');
 
-            match ($option) {
-                '1' => $newName = $this->ask("Nuevo nombre", $newName),
-                '2' => $newDescription = $this->ask("Nueva descripción", $newDescription),
-                '3' => $newFrequency = $this->ask("Nueva frecuencia (en minutos)", $newFrequency),
-                '4' => $this->showCurrentValues($newName, $newDescription, $newFrequency),
-                '6' => function () {
+            $options = [
+                '0' => 'Nombre',
+                '1' => 'Descripción',
+                '2' => 'Frecuencia',
+                '3' => 'Ver valores actuales',
+                '4' => 'Guardar y salir',
+                '5' => 'Cancelar',
+            ];
+
+            $selectedValue = $this->choice("¿Qué deseas modificar?", array_values($options));
+            $option = array_search($selectedValue, $options);
+
+            switch ($option) {
+                case '0':
+                    $newName = $this->ask("Nuevo nombre", $newName);
+                    break;
+                case '1':
+                    $newDescription = $this->ask("Nueva descripción", $newDescription);
+                    break;
+                case '2':
+                    $newFrequency = $this->ask("Nueva frecuencia (en minutos)", $newFrequency);
+                    break;
+                case '3':
+                    $this->showCurrentValues($newName, $newDescription, $newFrequency);
+                    break;
+                case '4':
+                    break 2;
+                case '5':
                     $this->warn("Operación cancelada.");
-                    exit(0);
-                }
-            };
-        } while ($option !== '5');
+                    return;
+            }
+        } while (true);
 
 
         $this->line("\nResumen de los nuevos valores:");
@@ -103,7 +115,7 @@ class UpdateAction extends BaseCommands
 
         $updateResponse = Http::withToken($token)->withHeaders([
             'Accept' => 'application/json',
-        ])->post($updateUrl, $payload);
+        ])->put($updateUrl, $payload);
 
         if (!$updateResponse->ok()) {
             $this->error("Error al actualizar la acción.");
@@ -111,9 +123,9 @@ class UpdateAction extends BaseCommands
             return 1;
         }
 
+        $this->info("Acción actualizada correctamente.");
         if ($logLevel === 'debug') {
             Log::channel('aether')->debug("Acción: ({$selectedUri}) actualizada correctamente.");
-            $this->info("Acción actualizada correctamente.");
             return 0;
         }
     }
