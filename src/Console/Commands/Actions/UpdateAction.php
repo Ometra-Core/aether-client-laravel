@@ -36,6 +36,7 @@ class UpdateAction extends BaseCommands
             return 0;
         }
 
+        dd($actions);
         $choices = [];
         foreach ($actions as $action) {
             $label = "{$action['name']} - {$action['description']}";
