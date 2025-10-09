@@ -10,7 +10,7 @@ use Exception;
 class CreateRealm extends BaseCommands
 {
     protected $signature = 'aether:create-realm';
-    protected $description = 'Create a new aether in the Aether';
+    protected $description = 'Create a new realm in the Aether';
 
     public function handle()
     {
