@@ -1,6 +1,6 @@
 <?php
 
-namespace Ometra\AetherClient\Console\Commands\realms;
+namespace Ometra\AetherClient\Console\Commands\Realms;
 
 use Ometra\AetherClient\Console\BaseCommands;
 use Illuminate\Support\Facades\Log;
@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Http;
 use Ometra\AetherClient\AetherClient;
 use Exception;
 
-class realms extends BaseCommands
+class Realms extends BaseCommands
 {
     protected $signature = 'aether:realms';
     protected $description = 'List the realms that the application has';

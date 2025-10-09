@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Log;
 class UpdateAction extends BaseCommands
 {
     protected $signature = 'aether:update-action';
-    protected $description = 'Actualizar una acción existente mediante un menú interactivo';
+    protected $description = 'Update a specific action by its URI';
 
     public function handle()
     {

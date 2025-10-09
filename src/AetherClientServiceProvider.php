@@ -12,6 +12,9 @@ use Ometra\AetherClient\Console\Commands\Actions\Actions;
 use Ometra\AetherClient\Console\Commands\Actions\CreateAction;
 use Ometra\AetherClient\Console\Commands\Actions\UpdateAction;
 use Ometra\AetherClient\Console\Commands\Actions\DeleteAction;
+use Ometra\AetherClient\Console\Commands\Realms\CreateRealm;
+use Ometra\AetherClient\Console\Commands\Realms\Realms;
+
 class AetherClientServiceProvider extends ServiceProvider
 {
 	public function register()
@@ -54,6 +57,8 @@ class AetherClientServiceProvider extends ServiceProvider
 				CreateAction::class,
 				UpdateAction::class,
 				DeleteAction::class,
+				Realms::class,
+				CreateRealm::class,
 			]);
 		}
 	}
