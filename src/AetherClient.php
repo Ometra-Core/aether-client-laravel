@@ -22,54 +22,42 @@ class AetherClient
 		$this->log_level = strtolower(config('aether-client.log_level', 'error'));
 	}
 
-	public function report(string $action, array|string|null $data = null): array|null
+	public function report(string $action, array|string|null $data = null, string $status = 'ok'): array|null
 	{
-		$response = Http::withToken($this->token)->withHeaders([
-			'Accept'    => 'application/json',
-		])->post(
-			$this->aether_url . '/realms/' . $this->uri_realm,
-			[
-				'action' => $action,
-				'data'   => $data,
-			]
-		);
+		$payload = [
+			'action' => $action,
+			'data'   => $data,
+			'status' => $status,
+		];
+
+		$url = "{$this->aether_url}/realms/{$this->uri_realm}";
+		$response = Http::withToken($this->token)
+			->withHeaders([
+				'Accept' => 'application/json',
+			])
+			->post($url, $payload);
+
+		if ($status === 'ok' && $this->log_level === 'debug') {
+			Log::channel('aether')->info(
+				"Aether: Application ok -> {$action} | Payload: " . json_encode($data, JSON_UNESCAPED_UNICODE)
+			);
+		} else {
+			Log::channel('aether')->error(
+				"Aether: Aplication error-> {$action} | Payload: " . json_encode($data, JSON_UNESCAPED_UNICODE)
+			);
+		}
 
 		if ($response->ok()) {
-			Log::channel('aether')->info('Action reported -> ' . $action . ' Payload: ' . json_encode($data));
 			return $response->json();
 		} else {
-			Log::channel('aether')->alert('Failed to report action -> ' . $action);
+			Log::channel('aether')->alert(
+				"Aether FAIL to report -> {$action} | HTTP Response: {$response->body()}"
+			);
+
 			return [
 				'status' => 'error',
 				'message' => $response->body(),
 			];
 		}
-	}
-
-	public function getBaseUrl(): string
-	{
-		return $this->aether_url;
-	}
-
-	public function getRealmId(): string
-	{
-		return $this->uri_realm;
-	}
-
-	public function getLogLevel(): string
-	{
-		return $this->log_level;
-	}
-
-	public function getToken(): string
-	{
-		return $this->token;
-	}
-
-	public function getUriApplication(): string|null
-	{
-		$decode = base64_decode($this->token);
-		$uri_exploded = explode('?', $decode);
-		return $uri_exploded[0] ?? null;
 	}
 }
