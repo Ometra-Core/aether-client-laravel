@@ -14,6 +14,7 @@ use Ometra\AetherClient\Console\Commands\Actions\UpdateAction;
 use Ometra\AetherClient\Console\Commands\Actions\DeleteAction;
 use Ometra\AetherClient\Console\Commands\Realms\CreateRealm;
 use Ometra\AetherClient\Console\Commands\Realms\Realms;
+use Ometra\AetherClient\Console\Commands\Realms\UpdateRealm;
 
 class AetherClientServiceProvider extends ServiceProvider
 {
@@ -59,6 +60,7 @@ class AetherClientServiceProvider extends ServiceProvider
 				DeleteAction::class,
 				Realms::class,
 				CreateRealm::class,
+				UpdateRealm::class,
 			]);
 		}
 	}

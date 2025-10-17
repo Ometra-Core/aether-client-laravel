@@ -61,13 +61,38 @@ class UpdateRealm extends BaseCommands
 
                 case '1':
                     do {
-                        $newAction = [
-                            'name' => $this->ask("Nombre de la nueva acción"),
-                            'description' => $this->ask("Descripción"),
-                            'frequency' => (int) $this->ask("Frecuencia (en minutos)"),
-                        ];
+                        $actionName = $this->ask("Nombre de la nueva acción");
+                        $actionDescription = $this->ask("Descripción");
 
-                        $newActions[] = $newAction;
+                        $frequencyOptions = [
+                            '1' => 'Ingresar manualmente en minutos',
+                            '2' => 'Seleccionar un cron de Laravel',
+                        ];
+                        $typeFrecuency = $this->choice(
+                            '¿Cómo deseas establecer la frecuencia?', array_values($frequencyOptions)
+                        );
+                        $frequencyOption = array_search($typeFrecuency, $frequencyOptions);
+
+                        $frequency = null;
+                        switch ($frequencyOption) {
+                            case '1':
+                                $frequency = (int) $this->ask("Frecuencia (en minutos)");
+                                break;
+                            case '2':
+                                $cronOptions = $this->getCronOptions();
+                                $cronMap = $this->getCronMap();
+                                $selectedCron = $this->choice('¿Qué cron deseas usar?', array_keys($cronOptions), 0);
+                                $cronDescription = $cronOptions[$selectedCron];
+                                $this->info("Has seleccionado: $cronDescription");
+                                $frequency = $cronMap[$selectedCron];
+                                break;
+                        }
+
+                        $newActions[] = [
+                            'name' => $actionName,
+                            'description' => $actionDescription,
+                            'frequency' => $frequency,
+                        ];
                     } while ($this->confirm("¿Deseas agregar otra acción?", false));
                     break;
 

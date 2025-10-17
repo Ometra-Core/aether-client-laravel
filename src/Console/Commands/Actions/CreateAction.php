@@ -29,9 +29,33 @@ class CreateAction extends BaseCommands
             $this->info("-------Crear nueva acción-------");
             $name = $this->ask("Nombre de la acción (único)");
             $description = $this->ask("Descripción de la acción");
-            $frequency = $this->ask("Frecuencia de reporte (en minutos)");
 
-            if (!$this->confirm("¿Crear la acción '{$name}' con descripción '{$description}' en el realm '{$realId}'?")) {
+            $options = [
+                '1' => 'Ingresar manualmente en minutos',
+                '2' => 'Seleccionar un cron de Laravel',
+            ];
+            $typeFrecuency = $this->choice(
+                '¿Cómo deseas establecer la frecuencia?', array_values($options)
+            );
+
+            $option = array_search($typeFrecuency, $options);
+            $frequency = null;
+
+            switch ($option) {
+                case '1':
+                    $frequency = $this->ask("Frecuencia de reporte (en minutos)");
+                    break;
+                case '2':
+                    $cronOptions = $this->getCronOptions();
+                    $cronMap = $this->getCronMap();
+                    $selectedCron = $this->choice('¿Qué cron deseas usar?', array_keys($cronOptions), 0);
+                    $cronDescription = $cronOptions[$selectedCron];
+                    $this->info("Has seleccionado: $cronDescription");
+                    $frequency = $cronMap[$selectedCron];
+                    break;
+            }
+
+            if (!$this->confirm("¿Crear la acción '{$name}' con descripción '{$description}' y frecuencia '{$frequency}' en el realm '{$realId}'?")) {
                 $this->info("Operación cancelada.");
                 return 0;
             }
@@ -71,6 +95,7 @@ class CreateAction extends BaseCommands
                 Log::channel('aether')->debug("Acción creada correctamente: {$name} ({$uri_action}).");
                 return 0;
             }
+
             $this->info("Acción creada correctamente: {$name}.");
         } catch (Exception $e) {
             Log::channel('aether')->error("Excepción en aether:create-action -> " . $e->getMessage());
