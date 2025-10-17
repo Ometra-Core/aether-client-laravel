@@ -12,6 +12,28 @@ abstract class BaseCommands extends Command
     protected string $log_level;
     protected string $token;
 
+    protected array $cronOptions = [
+        'every_minute' => 'Cada minuto',
+        'everyFiveMinutes' => 'Cada 5 minutos',
+        'everyTenMinutes' => 'Cada 10 minutos',
+        'everyThirtyMinutes' => 'Cada 30 minutos',
+        'hourly' => 'Cada hora',
+        'daily' => 'Todos los días a la medianoche',
+        'weekly' => 'Todos los domingos a la medianoche',
+        'monthly' => 'El primer día de cada mes a la medianoche',
+    ];
+
+    protected array $cronMap = [
+        'every_minute' => '* * * * *',
+        'everyFiveMinutes' => '*/5 * * * *',
+        'everyTenMinutes' => '*/10 * * * *',
+        'everyThirtyMinutes' => '*/30 * * * *',
+        'hourly' => '0 * * * *',
+        'daily' => '0 0 * * *',
+        'weekly' => '0 0 * * 0',
+        'monthly' => '0 0 1 * *',
+    ];
+
     public function __construct()
     {
         parent::__construct();
@@ -27,5 +49,15 @@ abstract class BaseCommands extends Command
         $decode = base64_decode($this->token);
         $parts = explode('?', $decode);
         return $parts[0] ?? null;
+    }
+
+    protected function getCronOptions(): array
+    {
+        return $this->cronOptions;
+    }
+
+    protected function getCronMap(): array
+    {
+        return $this->cronMap;
     }
 }

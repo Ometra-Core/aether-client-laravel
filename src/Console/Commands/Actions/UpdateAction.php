@@ -80,7 +80,27 @@ class UpdateAction extends BaseCommands
                     $newDescription = $this->ask("Nueva descripción", $newDescription);
                     break;
                 case '2':
-                    $newFrequency = $this->ask("Nueva frecuencia (en minutos)", $newFrequency);
+                    $options = [
+                        '1' => 'Ingresar manualmente en minutos',
+                        '2' => 'Seleccionar un cron de Laravel',
+                    ];
+                    $typeFrecuency = $this->choice(
+                        '¿Cómo deseas establecer la frecuencia?', array_values($options));
+                    
+                    $option = array_search($typeFrecuency, $options);
+                    switch ($option) {
+                        case '1':
+                            $newFrequency = $this->ask("Nueva frecuencia en minutos", $newFrequency);
+                            break;
+                        case '2':
+                            $cronOptions = $this->getCronOptions();
+                            $cronMap = $this->getCronMap();
+                            $selectedCron = $this->choice('¿Qué cron deseas usar?', array_keys($cronOptions), 0);
+                            $cronDescription = $cronOptions[$selectedCron];
+                            $this->info("Has seleccionado: $cronDescription");
+                            $newFrequency = $cronMap[$selectedCron];
+                            break;
+                    }
                     break;
                 case '3':
                     $this->showCurrentValues($newName, $newDescription, $newFrequency);
@@ -92,7 +112,6 @@ class UpdateAction extends BaseCommands
                     return;
             }
         } while (true);
-
 
         $this->line("\nResumen de los nuevos valores:");
         $this->line("Nombre: $newName");
