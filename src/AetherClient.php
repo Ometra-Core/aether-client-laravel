@@ -9,7 +9,6 @@ class AetherClient
 {
 	protected string $aether_url;
 	protected string $uri_realm;
-	protected string $api_key;
 	protected string $token;
 	protected string $log_level;
 
@@ -17,7 +16,6 @@ class AetherClient
 	{
 		$this->aether_url = config('aether-client.base_url');
 		$this->uri_realm  = config('aether-client.realm_id');
-		$this->api_key = config('aether-client.api_key');
 		$this->token   = config('aether-client.token');
 		$this->log_level = strtolower(config('aether-client.log_level', 'error'));
 	}
