@@ -41,7 +41,7 @@ class AetherClient
 			);
 		} else {
 			Log::channel('aether')->error(
-				"Aether: Aplication error-> {$action} | Payload: " . json_encode($data, JSON_UNESCAPED_UNICODE)
+				"Aether: Aplication error-> {$action} Status: {$response->status()} Detail: {$response->body()}"
 			);
 		}
 
