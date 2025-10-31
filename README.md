@@ -7,7 +7,7 @@ AETHER_REALM_ID=
 AETHER_TOKEN=
 AETHER_LOG_LEV=
  ```
- ## Package installation**
+ ## Package installation
  To integrate Aether into any system, you need to run the following code:
  ```bash
 composer require ometra/aether-client:dev-main
