@@ -35,14 +35,18 @@ class AetherClient
 			])
 			->post($url, $payload);
 
-		if ($status === 'ok' && $this->log_level === 'debug') {
-			Log::channel('aether')->info(
-				"Aether: Application ok -> {$action} | Payload: " . json_encode($data, JSON_UNESCAPED_UNICODE)
-			);
-		} else {
-			Log::channel('aether')->error(
-				"Aether: Aplication error-> {$action} Status: {$response->status()} Detail: {$response->body()}"
-			);
+		if ($status === 'ok') {
+			if ($this->log_level === 'debug') {
+				Log::channel('aether')->info(
+					"Aether: Application ok -> {$action} | Payload: " . json_encode($data, JSON_UNESCAPED_UNICODE)
+				);
+			}
+		} elseif ($status === 'error') {
+			if (in_array($this->log_level, ['error', 'debug'])) {
+				Log::channel('aether')->error(
+					"Aether: Application error -> {$action} | Status: {$response->status()} | Detail: {$response->body()} | Payload: " . json_encode($data, JSON_UNESCAPED_UNICODE)
+				);
+			}
 		}
 
 		if ($response->ok()) {
