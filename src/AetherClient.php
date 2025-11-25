@@ -20,31 +20,29 @@ class AetherClient
 		$this->log_level = strtolower(config('aether-client.log_level', 'error'));
 	}
 
-	public function report(string $action, array|string|null $data = null, string $status = 'ok'): array|null
+	public function report(string $action, ?string $status = null): array|null
+
 	{
-		$payload = [
-			'action' => $action,
-			'data'   => $data,
-			'status' => $status,
-		];
+		$payload = ['action' => $action];
+		if (!empty($status)) {
+			$payload['status'] = $status;
+		}
 
 		$url = "{$this->aether_url}/realms/{$this->uri_realm}";
 		$response = Http::withToken($this->token)
-			->withHeaders([
-				'Accept' => 'application/json',
-			])
+			->withHeaders(['Accept' => 'application/json'])
 			->post($url, $payload);
 
 		if ($status === 'ok') {
 			if ($this->log_level === 'debug') {
 				Log::channel('aether')->info(
-					"Aether: Application ok -> {$action} | Payload: " . json_encode($data, JSON_UNESCAPED_UNICODE)
+					"Aether: Application ok -> {$action} | Payload: " . json_encode($payload, JSON_UNESCAPED_UNICODE)
 				);
 			}
 		} elseif ($status === 'error') {
 			if (in_array($this->log_level, ['error', 'debug'])) {
 				Log::channel('aether')->error(
-					"Aether: Application error -> {$action} | Status: {$response->status()} | Detail: {$response->body()} | Payload: " . json_encode($data, JSON_UNESCAPED_UNICODE)
+					"Aether: Application error -> {$action} | Status: {$response->status()} | Detail: {$response->body()} | Payload: " . json_encode($payload, JSON_UNESCAPED_UNICODE)
 				);
 			}
 		}

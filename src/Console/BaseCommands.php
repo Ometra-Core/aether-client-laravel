@@ -45,7 +45,7 @@ abstract class BaseCommands extends Command
     protected function getUriApplication(): ?string
     {
         $decode = base64_decode($this->token);
-        $parts = explode('?', $decode);
+        $parts = explode(':', $decode);
         return $parts[0] ?? null;
     }
 

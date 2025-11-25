@@ -14,7 +14,7 @@ class AetherReport extends Command
      *
      * @var string
      */
-    protected $signature = 'aether:report {action} {--data=}';
+    protected $signature = 'aether:report {action} {status?}';
 
     /**
      * The console command description.
@@ -26,20 +26,10 @@ class AetherReport extends Command
     public function handle()
     {
         $action = $this->argument('action');
-        $data = $this->option('data');
+        $status = $this->argument('status');
         $log_level = strtolower(config('aether-client.log_level'));
 
-        $decodedData = null;
-
-        if ($data) {
-            $decodedData = json_decode($data, true);
-            if (json_last_error() !== JSON_ERROR_NONE) {
-                $this->error("Invalid JSON data provided.");
-                return 1;
-            }
-        }
-
-        $response = AetherClient::report($action, $decodedData);
+        $response = AetherClient::report($action, $status);
         $message = $response['message'] ?? 'No message returned';
         if (isset($response['status']) && $response['status'] === 'error') {
             Log::channel('aether')->error("Server responded with error: " . $message);
@@ -48,9 +38,9 @@ class AetherReport extends Command
         }
 
         if ($log_level === 'debug') {
-            Log::channel('aether')->info("Report sent with action: {$action}, payload: " . json_encode($decodedData));
+            Log::channel('aether')->info("Report sent with action: {$action}");
         }
-        $this->info("Report sent with action: {$action}, payload: " . json_encode($decodedData));
+        $this->info("Report sent with action: {$action}");
         $this->info("Server response: " . $message);
         return 0;
     }

@@ -113,7 +113,7 @@ class UpdateRealm extends BaseCommands
                     }
 
                     if (!$this->confirm("¿Deseas guardar estos cambios?", true)) {
-                        $this->info("⚠️ Cambios descartados.");
+                        $this->info("Cambios descartados.");
                         return 0;
                     }
 
