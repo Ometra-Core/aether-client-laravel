@@ -58,7 +58,7 @@ class UpdateSetting extends BaseCommands
                 '5' => 'Cancelar',
             ];
 
-            $selectedValue = $this->choice("Selecciona una opción:", array_values($options));
+            $selectedValue = $this->choice("Selecciona una opción", array_values($options));
             $option = array_search($selectedValue, $options);
 
             switch ($option) {
@@ -113,18 +113,14 @@ class UpdateSetting extends BaseCommands
             $this->warn("No se realizaron cambios.");
             return 0;
         }
-
-        $payload = [
-            "realms" => [
-                array_merge(["uri_realm" => $realmId], $realmSettings)
-            ]
-        ];
-
+        $payload = array_merge(
+            ["uri_realm" => $realmId],
+            $realmSettings
+        );
+        
         $updateUrl = "{$baseUrl}/applications/{$uriApplication}/actions/{$selectedUri}/update-realms-action-settings";
 
-        $updateResponse = Http::withToken($token)
-            ->acceptJson()
-            ->put($updateUrl, $payload);
+        $updateResponse = Http::withToken($token)->acceptJson()->post($updateUrl, $payload);
 
         if (!$updateResponse->ok()) {
             $this->error("Error al actualizar la acción.");
