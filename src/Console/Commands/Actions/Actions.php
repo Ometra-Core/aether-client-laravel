@@ -63,7 +63,7 @@ class Actions extends BaseCommands
             $this->info("Acciones disponibles:\n");
 
             foreach ($actions as $action) {
-                $this->line("URI aplicación: {$action['uri_application']}");
+                $this->line("uri_application: {$action['uri_application']}");
                 $this->line("Nombre: {$action['name']}");
                 $this->line("Descripción: {$action['description']}");
                 $this->line("Frecuencia: {$action['frequency']} minutos");

@@ -35,7 +35,8 @@ class CreateAction extends BaseCommands
                 '2' => 'Seleccionar un cron de Laravel',
             ];
             $typeFrecuency = $this->choice(
-                '¿Cómo deseas establecer la frecuencia?', array_values($options)
+                '¿Cómo deseas establecer la frecuencia?',
+                array_values($options)
             );
 
             $option = array_search($typeFrecuency, $options);
@@ -55,7 +56,7 @@ class CreateAction extends BaseCommands
                     break;
             }
 
-            if (!$this->confirm("¿Crear la acción '{$name}' con descripción '{$description}' y frecuencia '{$frequency}' en el realm '{$realId}'?")) {
+            if (!$this->confirm("¿Deseas crear la acción '{$name}' con descripción: '{$description}' y frecuencia: '" . ($cronDescription ?? $frequency) . "' ?")) {
                 $this->info("Operación cancelada.");
                 return 0;
             }

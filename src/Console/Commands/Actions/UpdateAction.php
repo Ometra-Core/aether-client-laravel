@@ -59,7 +59,6 @@ class UpdateAction extends BaseCommands
 
         do {
             $this->line("\n¿Qué deseas modificar?");
-
             $options = [
                 '0' => 'Nombre',
                 '1' => 'Descripción',
