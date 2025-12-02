@@ -1,56 +1,90 @@
 # Aether Client
-## System Overview
-This is the package that the user must install within the application in which they wish to use aether. For the client to be able to make requests, it must define the following environment variables:
-```bash
-AETHER_BASE_URL=
-AETHER_REALM_ID=
-AETHER_TOKEN=
-AETHER_LOG_LEV=
- ```
- ## Package installation
- To integrate Aether into any system, you need to run the following code:
+Aether Client is a Laravel package that allows any client application to easily connect and interact with the Aether Server. With this package, you can manage "actions" and "realms" directly from your Laravel application's command line.
+
+## Installation
+Install this package in your Laravel project via Composer:
+
  ```bash
 composer require ometra/aether-client:dev-main
   ```
-> **Note: Each application includes a default **heartbeat** action, which is used to monitor that the environment is running.
 
-  ## Console Commands
-  Displays the full list of actions configured in the realm.
+## Enviroment Setup 
+Befor using the package, add the following variables to your .env file to connect with Aether Server:
+
+```bash
+AETHER_BASE_URL=      # URL of your Aether server
+AETHER_REALM_ID=      # Realm ID for your application
+AETHER_TOKEN=         # Authentication token
+AETHER_LOG_LEV=       # Log level (e.g., debug, info, error)
+ ```
+
+## Available Artisan Commands
+Each command should be executed from your project root using php artisan. Below you’ll find the main commands provided by the package, grouped by functionality.
+  
+### Actions
+ - ***List actions***:
+Displays all actions configured for the application.
+
  ```bash
   php artisan aether:actions
  ```
  
-Allows you to create a new action by specifying its name, description, and frequency.
+ - ***Create a new action***:
+Launches an interactive wizard for creating a new action, including name, description, and frequency.
+
  ```bash
  php artisan aether:create-action
  ```
+ - ***Update an existing action***:
+ Select and modify any registered action.
 
-Lets you select an existing action to update its details.
  ```bash
  php artisan aether:update-action
  ```
-  
-Shows all registered actions and lets you choose one to delete.
+- ***Delete an action***:
+Shows all registered actions and lets you select one to delete from your server.
+
  ```bash 
  php artisan aether:delete-action
  ```
-  
-Displays the list of realms registered in the application.
+
+- ***Update the configuration of an action that belongs to a realm***:   
+Allows updating the relationships and settings between actions and realms. 
+
+ ```bash 
+ php artisan aether:update-action-realm
+ ```
+
+### Realms
+
+- ***List realms***:
+Shows all realms registered for your application. 
+
  ```bash
  php artisan aether:realms
  ```
- 
- Creates a new realm and optionally allows you to associate actions with it.
+- ***Create a new realm***:
+Interactive wizard for registering a new realm.
  ```bash
  php artisan aether:create-realm
  ```
- 
-  Lets you select an existing realm to rename it and optionally add more actions.
+
+- ***Update a realm***:
+  Select a realm to rename it and/or add new action. 
+
  ```bash
  php artisan aether:update-realm 
  ```
 
- Reports a specific action by providing its name.
+- ***Monitoring***:
+ Sends a specific event (e.g., completion, error, etc.) to the Aether server.
  ```bash
- php artisan aether:report name_action
+   php artisan aether:report {action} {status?}
  ```
+
+🔹 <span style="color: #5DADE2; font-weight: bold;">action (required)</span>: Name of the action to report  
+🔹 <span style="color: #5DADE2; font-weight: bold;">status (optional)</span>: Status or extra message
+
+### Aditional information 
+
+> **Note**: By default, every application includes a special heartbeat action to check that the environment is running properly.
