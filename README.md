@@ -76,7 +76,7 @@ Interactive wizard for registering a new realm.
  php artisan aether:update-realm 
  ```
 
-- ***Monitoring***:
+### Monitoring
  Sends a specific event (e.g., completion, error, etc.) to the Aether server.
  ```bash
    php artisan aether:report {action} {status?}
