@@ -45,82 +45,171 @@ class UpdateSetting extends BaseCommands
 
         $this->info("Has seleccionado la acción con URI: {$selectedUri}");
 
+        $urlSetting = "{$baseUrl}/applications/{$uriApplication}/actions/{$selectedUri}/realm-action-setting";
+        $settingResponse = Http::withToken($token)->acceptJson()->get($urlSetting, [
+            'uri_realm' => $realmId,
+        ]);
+
+        $currentSettings = $settingResponse->json()['data'] ?? [];
+        $currentTriggers = $currentSettings['triggers'] ?? [];
+        $triggersAreEmpty = empty($currentTriggers);
+
+        $errorTrigger = isset($currentTriggers['error'][0])
+            ? [
+                "type" => "email",
+                "send_at" => $currentTriggers['error'][0]['send_at'] ?? null,
+                "cooldown" => $currentTriggers['error'][0]['cooldown'] ?? "00:15:00",
+                "attendants" => $currentTriggers['error'][0]['attendants'] ?? []
+            ]
+            : null;
+
+        $warningTrigger = isset($currentTriggers['warning'][0])
+            ? [
+                "type" => "email",
+                "send_at" => $currentTriggers['warning'][0]['send_at'] ?? null,
+                "cooldown" => $currentTriggers['warning'][0]['cooldown'] ?? "00:15:00",
+                "attendants" => $currentTriggers['warning'][0]['attendants'] ?? []
+            ]
+            : null;
+
         $realmSettings = [];
 
         do {
             $this->line("\n¿Qué deseas modificar?");
             $options = [
-                '0' => 'fail_threshold (errores)',
-                '1' => 'warning_threshold (warnings)',
-                '2' => 'Lista de correos para warnings',
-                '3' => 'Lista de correos para errores',
-                '4' => 'Guardar y salir',
-                '5' => 'Cancelar',
+                '0' => 'Cantidad máxima de errores',
+                '1' => 'Cantidad máxima de warnings',
+                '2' => 'Correos para warnings',
+                '3' => 'Correos para errores',
+                '4' => 'Cambiar cooldown WARNING',
+                '5' => 'Cambiar cooldown ERROR',
+                '6' => 'Ver configuración actual',
+                '7' => 'Guardar y salir',
+                '8' => 'Cancelar',
             ];
 
-            $selectedValue = $this->choice("Selecciona una opción", array_values($options));
+            $selectedValue = $this->choice("Selecciona una opción:", array_values($options));
             $option = array_search($selectedValue, $options);
 
             switch ($option) {
                 case '0':
-                    $value = $this->ask("Nuevo fail_threshold (solo número)");
+                    $value = $this->ask("Ingresa la cantidad de errores que puede tener tu aplicación (solo número)");
                     if (is_numeric($value)) {
                         $realmSettings['fail_threshold'] = (int)$value;
                     }
                     break;
 
                 case '1':
-                    $value = $this->ask("Nuevo warning_threshold (solo número)");
+                    $value = $this->ask("Ingresa la cantidad de warnings que puede tener tu aplicación (solo número)");
                     if (is_numeric($value)) {
                         $realmSettings['warning_threshold'] = (int)$value;
                     }
                     break;
-
                 case '2':
-                    $emails = $this->ask("Correos para warnings (separados por coma)");
+                    $emails = $this->ask("Correos para warnings (coma separados)");
                     $array = array_map('trim', explode(',', $emails));
 
-                    $realmSettings['triggers']['warning'] = [
-                        [
+                    if (!$warningTrigger) {
+                        $warningTrigger = [
                             "type" => "email",
+                            "send_at" => null,
+                            "cooldown" => "00:15:00",
                             "attendants" => $array
-                        ]
-                    ];
-                    break;
+                        ];
+                    } else {
+                        $warningTrigger["attendants"] = $array;
+                    }
 
+                    $realmSettings['triggers']['warning'] = [$warningTrigger];
+                    break;
                 case '3':
-                    $emails = $this->ask("Correos para errores (separados por coma)");
+                    $emails = $this->ask("Correos para errores (coma separados)");
                     $array = array_map('trim', explode(',', $emails));
 
-                    $realmSettings['triggers']['error'] = [
-                        [
+                    if (!$errorTrigger) {
+                        $errorTrigger = [
                             "type" => "email",
+                            "send_at" => null,
+                            "cooldown" => "00:15:00",
                             "attendants" => $array
-                        ]
-                    ];
+                        ];
+                    } else {
+                        $errorTrigger["attendants"] = $array;
+                    }
+
+                    $realmSettings['triggers']['error'] = [$errorTrigger];
                     break;
-
                 case '4':
-                    break 2;
+                    $cooldown = $this->ask("Nuevo cooldown WARNING (HH:MM:SS)");
+                    if (!preg_match('/^\d{2}:\d{2}:\d{2}$/', $cooldown)) {
+                        $this->error("Formato inválido.");
+                        break;
+                    }
 
+                    if (!$warningTrigger) {
+                        $warningTrigger = [
+                            "type" => "email",
+                            "send_at" => null,
+                            "cooldown" => $cooldown,
+                            "attendants" => []
+                        ];
+                    } else {
+                        $warningTrigger['cooldown'] = $cooldown;
+                    }
+
+                    $realmSettings['triggers']['warning'] = [$warningTrigger];
+                    break;
                 case '5':
+                    $cooldown = $this->ask("Nuevo cooldown ERROR (HH:MM:SS)");
+                    if (!preg_match('/^\d{2}:\d{2}:\d{2}$/', $cooldown)) {
+                        $this->error("Formato inválido.");
+                        break;
+                    }
+                    if (!$errorTrigger) {
+                        $errorTrigger = [
+                            "type" => "email",
+                            "send_at" => null,
+                            "cooldown" => $cooldown,
+                            "attendants" => []
+                        ];
+                    } else {
+                        $errorTrigger['cooldown'] = $cooldown;
+                    }
+
+                    $realmSettings['triggers']['error'] = [$errorTrigger];
+                    break;
+                case '6':
+                    $this->info(json_encode($currentSettings, JSON_PRETTY_PRINT));
+                    break;
+                case '7':
+                    break 2;
+                case '8':
                     $this->warn("Operación cancelada.");
                     return 0;
             }
         } while (true);
 
+        if ($triggersAreEmpty && !isset($realmSettings['triggers'])) {
+        } else {
+            $realmSettings['triggers'] = [
+                "error" => $errorTrigger ? [$errorTrigger] : [],
+                "warning" => $warningTrigger ? [$warningTrigger] : []
+            ];
+        }
+
         if (empty($realmSettings)) {
             $this->warn("No se realizaron cambios.");
             return 0;
         }
+
         $payload = array_merge(
             ["uri_realm" => $realmId],
             $realmSettings
         );
-        
-        $updateUrl = "{$baseUrl}/applications/{$uriApplication}/actions/{$selectedUri}/update-realms-action-settings";
 
-        $updateResponse = Http::withToken($token)->acceptJson()->post($updateUrl, $payload);
+        $updateUrl = "{$baseUrl}/applications/{$uriApplication}/actions/{$selectedUri}/update-realm-action-setting";
+
+        $updateResponse = Http::withToken($token)->acceptJson()->put($updateUrl, $payload);
 
         if (!$updateResponse->ok()) {
             $this->error("Error al actualizar la acción.");
