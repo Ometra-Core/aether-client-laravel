@@ -76,6 +76,26 @@ Interactive wizard for registering a new realm.
  php artisan aether:update-realm 
  ```
 
+**Note**
+> Email addresses must be entered separated by commas, for example:
+```bash
+ user1@example.com,user2@example.com 
+ ```
+> When one or more email addresses are provided, configuring a cooldown is mandatory.  
+>  
+> The cooldown represents the minimum time interval between notifications.  
+>  
+> The cooldown format must be HH:MM:SS, for example.
+
+```bash
+ 00:15:00
+ ```
+
+> Notification settings are independent for errors (error) and warnings (warning), meaning that each one can have:
+- A different list of email recipients
+- Different threshold values
+- A different cooldown time
+
 ### Monitoring
  Sends a specific event (e.g., completion, error, etc.) to the Aether server.
  ```bash
