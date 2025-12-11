@@ -81,8 +81,8 @@ class UpdateSetting extends BaseCommands
                 '1' => 'Cantidad máxima de warnings',
                 '2' => 'Correos para warnings',
                 '3' => 'Correos para errores',
-                '4' => 'Cambiar cooldown WARNING',
-                '5' => 'Cambiar cooldown ERROR',
+                '4' => 'Cambiar cooldown warning',
+                '5' => 'Cambiar cooldown error',
                 '6' => 'Ver configuración actual',
                 '7' => 'Guardar y salir',
                 '8' => 'Cancelar',
@@ -140,7 +140,7 @@ class UpdateSetting extends BaseCommands
                     $realmSettings['triggers']['error'] = [$errorTrigger];
                     break;
                 case '4':
-                    $cooldown = $this->ask("Nuevo cooldown WARNING (HH:MM:SS)");
+                    $cooldown = $this->ask("Nuevo cooldown warning (HH:MM:SS)");
                     if (!preg_match('/^\d{2}:\d{2}:\d{2}$/', $cooldown)) {
                         $this->error("Formato inválido.");
                         break;
@@ -160,7 +160,7 @@ class UpdateSetting extends BaseCommands
                     $realmSettings['triggers']['warning'] = [$warningTrigger];
                     break;
                 case '5':
-                    $cooldown = $this->ask("Nuevo cooldown ERROR (HH:MM:SS)");
+                    $cooldown = $this->ask("Nuevo cooldown error (HH:MM:SS)");
                     if (!preg_match('/^\d{2}:\d{2}:\d{2}$/', $cooldown)) {
                         $this->error("Formato inválido.");
                         break;

@@ -68,7 +68,7 @@ class UpdateAction extends BaseCommands
                 '5' => 'Cancelar',
             ];
 
-            $selectedValue = $this->choice("¿Qué deseas modificar?", array_values($options));
+            $selectedValue = $this->choice("Selecciona una opción", array_values($options));
             $option = array_search($selectedValue, $options);
 
             switch ($option) {
@@ -84,8 +84,10 @@ class UpdateAction extends BaseCommands
                         '2' => 'Seleccionar un cron de Laravel',
                     ];
                     $typeFrecuency = $this->choice(
-                        '¿Cómo deseas establecer la frecuencia?', array_values($options));
-                    
+                        '¿Cómo deseas establecer la frecuencia?',
+                        array_values($options)
+                    );
+
                     $option = array_search($typeFrecuency, $options);
                     switch ($option) {
                         case '1':
