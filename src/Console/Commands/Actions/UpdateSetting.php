@@ -80,7 +80,7 @@ class UpdateSetting extends BaseCommands
             $option = select(
                 label: strtoupper($type) . ' – ¿Qué deseas hacer?',
                 options: [
-                    'threshold' => 'Cambiar umbral',
+                    'threshold' => 'Cambiar el umbral',
                     'cooldown'  => 'Cambiar tiempo entre notificaciones',
                     'emails'    => 'Correos para enviar notificaciones',
                     'view'      => 'Ver configuración actual',
@@ -107,7 +107,7 @@ class UpdateSetting extends BaseCommands
                 case 'emails':
                     $trigger['attendants'] = array_map(
                         'trim',
-                        explode(',', text('Correos (separados por coma):'))
+                        explode(',', text('Correos (ingresar separados por coma):'))
                     );
                     break;
 
