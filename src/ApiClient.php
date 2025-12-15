@@ -7,11 +7,10 @@ use Illuminate\Support\Facades\Log;
 
 class ApiClient
 {
-
     protected string $base_url;
     protected string $realm_id;
     protected string $log_level;
-    protected string $token;
+    protected ?string $token;
 
     public function __construct()
     {
@@ -21,33 +20,24 @@ class ApiClient
         $this->token = config('aether-client.token', null);
     }
 
-
-    private function request(string $method, string $endpoint, array $params = [], array $data = []): array|null
+    private function request(string $method, string $endpoint, array $data = []): array|null
     {
         $url = "{$this->base_url}{$endpoint}";
 
-        $http = $http = Http::withToken($this->token)->withHeaders(['Accept' => 'application/json']);
+        $http = Http::withToken($this->token)->withHeaders(['Accept' => 'application/json']);
 
-        if (in_array($method, ['POST', 'PUT'])) {
-            $response = $http->{$method}($url);
-        } else {
-            $response = $http->{$method}($url, $params);
+        $response = $http->{$method}($url, $data);
+
+        if ($response->successful()) {
+            $this->logSuccess($method, $endpoint, $data);
+            return $response->json()['data'] ?? null;
         }
 
-        if ($response->ok()) {
-            $this->logSucces($method, $endpoint, $data);
-            $json = $response->json();
-            return $json['data'] ?? null;
-        } else {
-            $this->logError($method, $endpoint, $data, $response);
-            return null;
-        }
-
-        $this->logFailHttp($method, $endpoint, $data, $response);
+        $this->logError($method, $endpoint, $data, $response);
+        return null;
     }
 
-
-    private function logError(string $method, string $endpoint, array $data = [], $response)
+    private function logError(string $method, string $endpoint, array $data, $response)
     {
         if (in_array($this->log_level, ['error', 'debug', 'info'])) {
             Log::channel('aether')->error(
@@ -56,7 +46,7 @@ class ApiClient
         }
     }
 
-    private function logSucces(string $method, string $endpoint, array $data = [])
+    private function logSuccess(string $method, string $endpoint, array $data)
     {
         if ($this->log_level === 'debug') {
             Log::channel('aether')->debug(
@@ -65,44 +55,35 @@ class ApiClient
         }
     }
 
-    private function logFailHttp(string $method, string $endpoint, array $data = [], $response)
+    public function getRealmId(): string
     {
-        if (in_array($this->log_level, ['error', 'debug', 'info'])) {
-            Log::channel('aether')->error(
-                "Aether API FAIL to {$method} -> {$endpoint} | Status: {$response->status()} | Detail: {$response->body()} | Data: " . json_encode($data, JSON_UNESCAPED_UNICODE)
-            );
-        }
+        return $this->realm_id;
     }
 
-    public function getUriApplication():?string
+    public function getUriApplication(): ?string
     {
         $decode = base64_decode($this->token);
         $parts = explode(':', $decode);
         return $parts[0] ?? null;
     }
 
-    public function getRealmId():?string
+    public function get(string $endpoint, array $data = [])
     {
-        return $this->realm_id;
-    }
-
-    public function get(string $endpoint)
-    {
-        return $this->request('GET', $endpoint);
+        return $this->request('get', $endpoint, $data);
     }
 
     public function post(string $endpoint, array $data = [])
     {
-        return $this->request('POST', $endpoint, $data);
+        return $this->request('post', $endpoint, $data);
     }
 
     public function put(string $endpoint, array $data = [])
     {
-        return $this->request('PUT', $endpoint, $data);
+        return $this->request('put', $endpoint, $data);
     }
 
     public function delete(string $endpoint)
     {
-        return $this->request('DELETE', $endpoint);
+        return $this->request('delete', $endpoint, []);
     }
 }
