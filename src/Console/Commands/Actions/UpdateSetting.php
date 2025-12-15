@@ -112,20 +112,20 @@ class UpdateSetting extends BaseCommands
                 case 'emails':
                     $triggers[$type] ??= $this->defaultTrigger();
 
-                    $currentEmails = $triggers[$type]['attendants'] ?? [];
-
                     $input = text(
-                        label: 'Correos nuevos (separados por coma). Deja vacío para no agregar:',
-                        default: implode(', ', $currentEmails)
+                        label: 'Correos (separados por coma). Deja vacío para limpiar:',
+                        default: implode(', ', $triggers[$type]['attendants'] ?? [])
                     );
 
-                    if (! empty(trim($input))) {
-                        $newEmails = array_map('trim', explode(',', $input));
+                    if (trim($input) === '') {
+                        $triggers[$type]['attendants'] = [];
+                    } else {
                         $triggers[$type]['attendants'] = array_values(
-                            array_unique(array_merge($currentEmails, $newEmails))
+                            array_unique(
+                                array_map('trim', explode(',', $input))
+                            )
                         );
                     }
-
                     break;
 
                 case 'view':
