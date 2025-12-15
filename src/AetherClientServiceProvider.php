@@ -16,6 +16,8 @@ use Ometra\AetherClient\Console\Commands\Actions\DeleteAction;
 use Ometra\AetherClient\Console\Commands\Realms\CreateRealm;
 use Ometra\AetherClient\Console\Commands\Realms\Realms;
 use Ometra\AetherClient\Console\Commands\Realms\UpdateRealm;
+use Ometra\AetherClient\ApiClient;
+use Ometra\AetherClient\Entities\Action;
 
 class AetherClientServiceProvider extends ServiceProvider
 {
@@ -26,8 +28,20 @@ class AetherClientServiceProvider extends ServiceProvider
 			'aether-client'
 		);
 
+		$this->app->singleton(ApiClient::class, function () {
+			return new ApiClient();
+		});
+
+		$this->app->bind(Action::class, function ($app) {
+			return new Action(
+				$app->make(ApiClient::class)
+			);
+		});
+
 		$this->app->singleton(AetherClient::class, function ($app) {
-			return new AetherClient();
+			return new AetherClient(
+				$app->make(ApiClient::class)
+			);
 		});
 	}
 
