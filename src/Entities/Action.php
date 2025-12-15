@@ -45,7 +45,7 @@ class Action
 
     public function updateSetting(string $uriAction, array $data)
     {
-        $response = $this->apiClient->post("/applications/{$this->apiClient->getUriApplication()}/actions/{$uriAction}/realm-action-setting", $data);
+        $response = $this->apiClient->post("/applications/{$this->apiClient->getUriApplication()}/actions/{$uriAction}/update-realm-action-setting", $data);
         return $response;
     }
 }
