@@ -30,7 +30,7 @@ class UpdateSetting extends BaseCommands
         }
 
         $choices = collect($actions)
-            ->mapWithKeys(fn ($a) => [
+            ->mapWithKeys(fn($a) => [
                 $a['uri_action'] => "{$a['name']} - {$a['description']}",
             ])
             ->toArray();
@@ -76,7 +76,8 @@ class UpdateSetting extends BaseCommands
         }
     }
 
-    protected function triggerMenu(string $type, array &$triggers, array &$thresholds, string $uriAction): void {
+    protected function triggerMenu(string $type, array &$triggers, array &$thresholds, string $uriAction): void
+    {
         while (true) {
             $option = select(
                 label: strtoupper($type) . ' ¿Qué deseas hacer?',
@@ -111,12 +112,20 @@ class UpdateSetting extends BaseCommands
                 case 'emails':
                     $triggers[$type] ??= $this->defaultTrigger();
 
-                    $triggers[$type]['attendants'] = array_map(
-                        'trim',
-                        explode(',', text(
-                            label: 'Correos (separados por coma):'
-                        ))
+                    $currentEmails = $triggers[$type]['attendants'] ?? [];
+
+                    $input = text(
+                        label: 'Correos nuevos (separados por coma). Deja vacío para no agregar:',
+                        default: implode(', ', $currentEmails)
                     );
+
+                    if (! empty(trim($input))) {
+                        $newEmails = array_map('trim', explode(',', $input));
+                        $triggers[$type]['attendants'] = array_values(
+                            array_unique(array_merge($currentEmails, $newEmails))
+                        );
+                    }
+
                     break;
 
                 case 'view':
@@ -155,7 +164,8 @@ class UpdateSetting extends BaseCommands
         }
     }
 
-    protected function saveSetting(string $uriAction, array $triggers, array $thresholds): void {
+    protected function saveSetting(string $uriAction, array $triggers, array $thresholds): void
+    {
         $payload = [
             'uri_realm' => $this->realm_id,
             'warning_threshold' => $thresholds['warning'],
