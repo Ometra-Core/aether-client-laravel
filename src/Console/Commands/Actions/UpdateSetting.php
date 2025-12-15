@@ -30,8 +30,8 @@ class UpdateSetting extends BaseCommands
         }
 
         $choices = collect($actions)
-            ->mapWithKeys(fn($a) => [
-                "{$a['name']} - {$a['description']}" => $a['uri_action']
+            ->mapWithKeys(fn ($a) => [
+                $a['uri_action'] => "{$a['name']} - {$a['description']}",
             ])
             ->toArray();
 
@@ -41,7 +41,17 @@ class UpdateSetting extends BaseCommands
         );
 
         $currentSettings = $this->actionApi->getSetting($uriAction) ?? [];
-        $triggers = $currentSettings['triggers'] ?? [];
+        $rawTriggers = $currentSettings['triggers'] ?? [];
+
+        $triggers = [
+            'warning' => $rawTriggers['warning'][0] ?? null,
+            'error'   => $rawTriggers['error'][0] ?? null,
+        ];
+
+        $thresholds = [
+            'warning' => $currentSettings['warning_threshold'] ?? null,
+            'error'   => $currentSettings['fail_threshold'] ?? null,
+        ];
 
         while (true) {
             $type = select(
@@ -49,7 +59,7 @@ class UpdateSetting extends BaseCommands
                 options: [
                     'warning' => 'Warning',
                     'error'   => 'Error',
-                    'exit'    => 'Salir'
+                    'exit'    => 'Salir',
                 ]
             );
 
@@ -59,26 +69,17 @@ class UpdateSetting extends BaseCommands
 
             $this->triggerMenu(
                 $type,
-                $triggers[$type][0] ?? null,
+                $triggers,
+                $thresholds,
                 $uriAction
             );
         }
     }
 
-    protected function triggerMenu(string $type, ?array $trigger, string $uriAction): void
-    {
-        $trigger ??= [
-            'type' => 'email',
-            'send_at' => null,
-            'cooldown' => '00:15:00',
-            'attendants' => [],
-        ];
-
-        $extraSettings = [];
-
+    protected function triggerMenu(string $type, array &$triggers, array &$thresholds, string $uriAction): void {
         while (true) {
             $option = select(
-                label: strtoupper($type) . ' – ¿Qué deseas hacer?',
+                label: strtoupper($type) . ' ¿Qué deseas hacer?',
                 options: [
                     'threshold' => 'Cambiar el umbral',
                     'cooldown'  => 'Cambiar tiempo entre notificaciones',
@@ -92,43 +93,61 @@ class UpdateSetting extends BaseCommands
 
             switch ($option) {
                 case 'threshold':
-                    $extraSettings["{$type}_threshold"] = (int) text(
-                        label: "Nuevo umbral para {$type}:"
+                    $thresholds[$type] = (int) text(
+                        label: "Cantidad máxima de {$type}s:",
+                        default: $thresholds[$type] ?? 0
                     );
                     break;
 
                 case 'cooldown':
-                    $trigger['cooldown'] = text(
+                    $triggers[$type] ??= $this->defaultTrigger();
+
+                    $triggers[$type]['cooldown'] = text(
                         label: 'Tiempo entre notificaciones (HH:MM:SS)',
-                        default: $trigger['cooldown']
+                        default: $triggers[$type]['cooldown']
                     );
                     break;
 
                 case 'emails':
-                    $trigger['attendants'] = array_map(
+                    $triggers[$type] ??= $this->defaultTrigger();
+
+                    $triggers[$type]['attendants'] = array_map(
                         'trim',
-                        explode(',', text('Correos (ingresar separados por coma):'))
+                        explode(',', text(
+                            label: 'Correos (separados por coma):'
+                        ))
                     );
                     break;
 
                 case 'view':
-                    $this->info(
-                        json_encode($trigger, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)
-                    );
+                    $this->info(json_encode([
+                        'threshold' => $thresholds[$type],
+                        'trigger'   => $triggers[$type],
+                    ], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
                     break;
 
                 case 'delete':
-                    $trigger = null;
+                    if ($triggers[$type] === null) {
+                        $this->warn('No hay configuración que eliminar.');
+                        break;
+                    }
+
+                    if (confirm(
+                        label: "¿Seguro que deseas eliminar la configuración {$type}?",
+                        default: false
+                    )) {
+                        $triggers[$type] = null;
+                        $this->warn("Configuración {$type} eliminada.");
+                    }
                     break;
 
                 case 'save':
-                    $this->saveTrigger(
+                    $this->saveSetting(
                         $uriAction,
-                        $type,
-                        $trigger,
-                        $extraSettings
+                        $triggers,
+                        $thresholds
                     );
-                    break;
+                    return;
 
                 case 'back':
                     return;
@@ -136,26 +155,33 @@ class UpdateSetting extends BaseCommands
         }
     }
 
-    protected function saveTrigger(string $uriAction, string $type, ?array $trigger, array $extra): void
-    {
-        $payload = array_merge(
-            ['uri_realm' => $this->realm_id],
-            $extra,
-            [
-                'triggers' => [
-                    $type => $trigger ? [$trigger] : []
-                ]
-            ]
-        );
+    protected function saveSetting(string $uriAction, array $triggers, array $thresholds): void {
+        $payload = [
+            'uri_realm' => $this->realm_id,
+            'warning_threshold' => $thresholds['warning'],
+            'fail_threshold'    => $thresholds['error'],
+            'triggers' => [
+                'warning' => $triggers['warning'] ? [$triggers['warning']] : [],
+                'error'   => $triggers['error']   ? [$triggers['error']]   : [],
+            ],
+        ];
+
+        if ($this->log_level === 'debug') {
+            Log::channel('aether')->debug('Payload enviado', $payload);
+        }
 
         $this->actionApi->updateSetting($uriAction, $payload);
 
         $this->info('Configuración guardada correctamente.');
+    }
 
-        if ($this->log_level === 'debug') {
-            Log::channel('aether')->debug(
-                "Realm settings actualizados ({$type}) para acción {$uriAction}"
-            );
-        }
+    protected function defaultTrigger(): array
+    {
+        return [
+            'type'       => 'email',
+            'send_at'    => null,
+            'cooldown'   => '00:15:00',
+            'attendants' => [],
+        ];
     }
 }
