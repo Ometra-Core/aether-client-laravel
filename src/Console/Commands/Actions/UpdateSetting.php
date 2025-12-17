@@ -2,7 +2,7 @@
 
 namespace Ometra\AetherClient\Console\Commands\Actions;
 
-use Ometra\AetherClient\Console\BaseCommands;
+use Illuminate\Console\Command;
 use Ometra\AetherClient\Entities\Action;
 use Illuminate\Support\Facades\Log;
 
@@ -10,7 +10,7 @@ use function Laravel\Prompts\select;
 use function Laravel\Prompts\text;
 use function Laravel\Prompts\confirm;
 
-class UpdateSetting extends BaseCommands
+class UpdateSetting extends Command
 {
     protected $signature = 'aether:update-action-realm';
     protected $description = 'Update realm settings for a specific action';
@@ -20,9 +20,9 @@ class UpdateSetting extends BaseCommands
         parent::__construct();
     }
 
-    public function handle(): int
+    public function handle()
     {
-        $actions = $this->actionApi->index();
+        /*$actions = $this->actionApi->index();
 
         if (empty($actions)) {
             $this->warn('No hay acciones registradas.');
@@ -32,8 +32,7 @@ class UpdateSetting extends BaseCommands
         $choices = collect($actions)
             ->mapWithKeys(fn($a) => [
                 $a['uri_action'] => "{$a['name']} - {$a['description']}",
-            ])
-            ->toArray();
+            ])->toArray();
 
         $uriAction = select(
             label: 'Selecciona una acción:',
@@ -192,6 +191,6 @@ class UpdateSetting extends BaseCommands
             'send_at'    => null,
             'cooldown'   => '00:15:00',
             'attendants' => [],
-        ];
+        ];*/
     }
 }

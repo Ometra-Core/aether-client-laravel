@@ -20,7 +20,7 @@ class ApiClient
         $this->token = config('aether-client.token', null);
     }
 
-    private function request(string $method, string $endpoint, array $data = []): array|null
+    private function request(string $method, string $endpoint, array $data = []): array|bool
     {
         $url = "{$this->base_url}{$endpoint}";
 
@@ -30,11 +30,11 @@ class ApiClient
 
         if ($response->successful()) {
             $this->logSuccess($method, $endpoint, $data);
-            return $response->json()['data'] ?? null;
+            return $response->json() ?? true;
         }
 
         $this->logError($method, $endpoint, $data, $response);
-        return null;
+        return false;
     }
 
     private function logError(string $method, string $endpoint, array $data, $response)

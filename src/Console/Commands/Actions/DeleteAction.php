@@ -2,99 +2,54 @@
 
 namespace Ometra\AetherClient\Console\Commands\Actions;
 
-use Ometra\AetherClient\Console\BaseCommands;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Http;
-use Exception;
+use Illuminate\Console\Command;
+use Ometra\AetherClient\Entities\Action;
+use function Laravel\Prompts\{select, confirm, info, warning};
 
-class DeleteAction extends BaseCommands
+class DeleteAction extends Command
 {
     protected $signature = 'aether:delete-action';
     protected $description = 'Delete a specific action by its URI';
 
+    public function __construct(protected Action $actionApi)
+    {
+        parent::__construct();
+    }
+
     public function handle()
     {
-        try {
-            $baseUrl = $this->base_url;
-            $token = $this->token;
-            $uriApplication = $this->getUriApplication();
-            $logLevel = $this->log_level;
 
-            if (!$uriApplication) {
-                $this->error("No se pudo obtener la URI de la aplicación desde el token.");
-            }
+        $actions = $this->actionApi->index();
 
-            $url = "{$baseUrl}/applications/{$uriApplication}/actions";
-            $response = Http::withToken($token)->withHeaders([
-                'Accept' => 'application/json',
-            ])->get($url);
+        if (empty($actions)) {
+            warning('No hay acciones registradas.');
+            return self::SUCCESS;
+        }
 
-            if (!$response->ok()) {
-                $this->error("No se pudieron obtener las acciones.");
-                return 1;
-            }
+        $uriAction = select(
+            label: 'Selecciona una acción para eliminar:',
+            options: collect($actions)->mapWithKeys(fn($a) => [
+                $a['uri_action'] => "{$a['name']} - {$a['description']}",
+            ])->toArray()
+        );
 
-            $actions = $response->json()['data'] ?? [];
+        $confirmed = confirm(
+            label: "¿Estás seguro de que deseas eliminar la acción seleccionada?"
+        );
 
-            if (empty($actions)) {
-                $this->warn("No hay acciones registradas.");
-                return 0;
-            }
+        if (!$confirmed) {
+            $this->info('Operación cancelada.');
+            return self::SUCCESS;
+        }
 
-            $choices = [];
-            foreach ($actions as $action) {
-                $label = "{$action['name']} - {$action['description']}";
-                $choices[$label] = $action['uri_action'];
-            }
+        $delete=$this->actionApi->delete($uriAction);
 
-            $selectedLabel = $this->choice("Selecciona una acción para eliminar:", array_keys($choices));
-            $selectedUri = $choices[$selectedLabel];
-            $selectedAction = collect($actions)->firstWhere('uri_action', $selectedUri);
-            $uriAction = $selectedAction['uri_action'] ?? null;
-
-            if (!$selectedAction) {
-                $this->error("Acción no encontrada.");
-                return 1;
-            }
-
-            $this->info("Has seleccionado: {$selectedAction['name']}");
-            if (!$this->confirm("¿Deseas eliminar está aplicación?", true)) {
-                $this->info("No se realizaron cambios.");
-                return 0;
-            }
-
-            $url = "{$baseUrl}/applications/{$uriApplication}/actions/$uriAction/destroy";
-
-            $response = Http::withToken($token)->withHeaders([
-                'Accept' => 'application/json',
-            ])->delete($url);
-
-            if (!$response->ok()) {
-                $this->error("Error al eliminar la acción.");
-                Log::channel('aether')->error("Request fallida a $url: " . $response->body());
-                return 1;
-            }
-
-            $responseData = $response->json();
-
-            $status = $responseData['status'] ?? null;
-            $message = $responseData['message'] ?? 'Sin mensaje';
-
-            if ($status !== 200) {
-                $this->error("Error del servidor: $message");
-                Log::channel('aether')->error("Respuesta con error desde $url: $message");
-                return 1;
-            }
-
-            if ($logLevel === 'debug') {
-                Log::channel('aether')->debug("Acción eliminada correctamente: {$selectedAction['name']} con URI: $uriAction");
-                return 0;
-            }
-            $this->info("Acción eliminada correctamente: {$selectedAction['name']} con URI: $uriAction");
-        } catch (Exception $e) {
-            Log::channel('aether')->error("Excepción en aether:actions -> " . $e->getMessage());
-            $this->error("Error inesperado: " . $e->getMessage());
-            return 1;
+        if ($delete === true) {
+            info('Acción eliminada correctamente.');
+            return self::SUCCESS;
+        } else {
+            warning('Error al eliminar la acción.');
+            return self::FAILURE;
         }
     }
 }

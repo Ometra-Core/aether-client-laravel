@@ -1,107 +1,61 @@
 <?php
 
-namespace Ometra\AetherClient\Console\Commands\Actions;
+use Illuminate\Console\Command;
+use Ometra\AetherClient\Console\Commands\Frequency;
+use Ometra\AetherClient\Entities\Action;
+use function Laravel\Prompts\{form, text, select, info, error};
 
-use Ometra\AetherClient\Console\BaseCommands;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
-use Exception;
-
-class CreateAction extends BaseCommands
+class CreateAction extends Command
 {
     protected $signature = 'aether:create-action';
-    protected $description = 'Create a new action in the Aether system';
+    protected $description = 'Create a new action in Aether';
+
+    public function __construct(protected Action $actionsApi)
+    {
+        parent::__construct();
+    }
 
     public function handle()
     {
-        try {
-            $baseUrl = $this->base_url;
-            $token = $this->token;
-            $uriApplication = $this->getUriApplication();
-            $logLevel = $this->log_level;
-            $realId = $this->realm_id;
+        info('<fg=cyan>Crear una nueva acción</>');
 
-            if (!$uriApplication) {
-                $this->error("No se pudo obtener la URI de la aplicación desde el token.");
-                return 1;
-            }
+        $data = form()
+            ->text('Nombre', name: 'name', required: 'El nombre es obligatorio')
+            ->text('Descripción', name: 'description', required: 'La descripción es obligatoria')
+            ->select('Tipo de frecuencia', name: 'type', options: Frequency::TYPES)
+            ->submit();
 
-            $this->info("-------Crear nueva acción-------");
-            $name = $this->ask("Nombre de la acción (único)");
-            $description = $this->ask("Descripción de la acción");
+        if ($data['type'] === 'minutes') {
+            $frequency = text(
+                label: '¿Cada cuántos minutos?',
+                validate: fn($v) =>
+                filter_var($v, FILTER_VALIDATE_INT) && (int)$v > 0 ? null : 'Debe ser un entero mayor a 0'
+            );
+        }
 
-            $options = [
-                '1' => 'Ingresar manualmente en minutos',
-                '2' => 'Seleccionar un cron de Laravel',
-            ];
-            $typeFrecuency = $this->choice(
-                '¿Cómo deseas establecer la frecuencia?',
-                array_values($options)
+        if ($data['type'] === 'cron') {
+            $key = select(
+                label: 'Frecuencia CRON',
+                options: Frequency::CRON_OPTIONS
             );
 
-            $option = array_search($typeFrecuency, $options);
-            $frequency = null;
+            $frequency = Frequency::cron($key);
+        }
 
-            switch ($option) {
-                case '1':
-                    $frequency = $this->ask("Frecuencia de reporte (en minutos)");
-                    break;
-                case '2':
-                    $cronOptions = $this->getCronOptions();
-                    $cronMap = $this->getCronMap();
-                    $selectedCron = $this->choice('¿Qué cron deseas usar?', array_keys($cronOptions), 0);
-                    $cronDescription = $cronOptions[$selectedCron];
-                    $this->info("Has seleccionado: $cronDescription");
-                    $frequency = $cronMap[$selectedCron];
-                    break;
-            }
+        $payload = [
+            'name'        => $data['name'],
+            'description' => $data['description'],
+            'frequency'   => $frequency,
+        ];
 
-            if (!$this->confirm("¿Deseas crear la acción '{$name}' con descripción: '{$description}' y frecuencia: '" . ($cronDescription ?? $frequency) . "' ?")) {
-                $this->info("Operación cancelada.");
-                return 0;
-            }
+        $update = $this->actionsApi->create($payload);
 
-            $payload = [
-                'name' => $name,
-                'description' => $description,
-                'frequency' => $frequency,
-                'realms' => [$realId],
-            ];
-
-            $url = "{$baseUrl}/applications/{$uriApplication}/actions";
-
-            $response = Http::withToken($token)->withHeaders([
-                'Accept' => 'application/json',
-            ])->post($url, $payload);
-
-            if (!$response->ok()) {
-                $this->error("Error al crear la acción.");
-                Log::channel('aether')->error("Request fallida a $url: " . $response->body());
-                return 1;
-            }
-
-            $responseData = $response->json();
-
-            $status = $responseData['status'] ?? null;
-            $message = $responseData['message'] ?? 'Sin mensaje';
-            $uri_action = $responseData['data']['uri_action'] ?? null;
-
-            if ($status !== 200) {
-                $this->error("Error del servidor: $message");
-                Log::channel('aether')->error("Respuesta con error desde $url: $message");
-                return 1;
-            }
-
-            if ($logLevel === 'debug') {
-                Log::channel('aether')->debug("Acción creada correctamente: {$name} ({$uri_action}).");
-                return 0;
-            }
-
-            $this->info("Acción creada correctamente: {$name}.");
-        } catch (Exception $e) {
-            Log::channel('aether')->error("Excepción en aether:create-action -> " . $e->getMessage());
-            $this->error("Error inesperado: " . $e->getMessage());
-            return 1;
+        if ($update === true) {
+            info('Acción creada correctamente.');
+            return self::SUCCESS;
+        } else {
+            error('Error al crear la acción.');
+            return self::FAILURE;
         }
     }
 }
